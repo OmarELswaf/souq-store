@@ -1,0 +1,10 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: souq-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - souq-mongo-data:/data/db
+volumes:
+  souq-mongo-data:
