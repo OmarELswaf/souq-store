@@ -1,0 +1,73 @@
+# Souq - MERN E-Commerce Store
+
+A full-stack e-commerce store built with MongoDB, Express, React and Node.js.
+Prices are in EGP and checkout is cash on delivery - there is no fake payment
+integration. The hosted demo runs on demo data in the browser when the API is
+not connected (a banner says so); the full stack below is the real app.
+
+## Features
+
+- Product catalog with full-text search, category filter and sorting
+- Product detail pages with stock status
+- Cart with quantity limits tied to real stock
+- JWT auth (register / login / session restore), bcrypt password hashing
+- Checkout creates an order: server prices every line from the database,
+  checks stock and decrements it atomically
+- Order history per account
+- API tests covering auth, listing, ordering and stock rules (node:test + supertest + mongodb-memory-server)
+- Helmet + CORS + JSON body limits on the API
+
+## Stack
+
+| Layer    | Tech |
+|----------|------|
+| Frontend | React 18, Vite, React Router, plain CSS |
+| Backend  | Node.js, Express, Mongoose, JWT, bcrypt |
+| Database | MongoDB |
+| Tests    | node:test, supertest, mongodb-memory-server |
+
+## Quick start
+
+```bash
+# 1. MongoDB (Docker)
+docker compose up -d
+
+# 2. API on http://localhost:5000
+cd server
+cp .env.example .env
+npm install
+npm run seed    # 12 products + admin@souq.local / admin12345
+npm run dev
+
+# 3. Client on http://localhost:5173 (proxies /api to :5000)
+cd client
+npm install
+npm run dev
+```
+
+Run the tests:
+
+```bash
+cd server && npm test
+```
+
+## API
+
+| Method | Route | Auth | Description |
+|--------|-------|------|-------------|
+| POST | /api/auth/register | - | Create account, returns JWT |
+| POST | /api/auth/login | - | Sign in, returns JWT |
+| GET | /api/auth/me | Bearer | Current user |
+| GET | /api/products | - | List, supports q, category, sort, page, limit |
+| GET | /api/products/categories | - | Distinct categories |
+| GET | /api/products/:slug | - | One product |
+| POST | /api/orders | Bearer | Place order (cash on delivery) |
+| GET | /api/orders/mine | Bearer | My orders |
+
+## Notes
+
+- Client state (cart, token) persists in localStorage.
+- `client/src/demo.js` implements the same API surface in the browser so the
+  static preview works without a backend; it only activates when the API is
+  unreachable and is clearly labeled in the UI.
+- Prices are demo values; product photos are Unsplash placeholders.
