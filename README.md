@@ -5,6 +5,13 @@ Prices are in EGP and checkout is cash on delivery - there is no fake payment
 integration. The hosted demo runs on demo data in the browser when the API is
 not connected (a banner says so); the full stack below is the real app.
 
+## Demo and verification
+
+- Hosted demo: https://souq-store-roan.vercel.app/
+- The hosted storefront uses browser demo data when the API is unavailable. It is not a connected production shop.
+- On 23 November 2026, all six API integration tests passed against isolated in-memory MongoDB, and the React production build passed.
+- These checks did not place a real order or verify a deployed backend.
+
 ## Features
 
 - Product catalog with full-text search, category filter and sorting
@@ -29,7 +36,9 @@ not connected (a banner says so); the full stack below is the real app.
 ## Quick start
 
 ```bash
-# 1. MongoDB (Docker)
+# 1. Clone and start MongoDB (Docker)
+git clone https://github.com/OmarELswaf/souq-store.git
+cd souq-store
 docker compose up -d
 
 # 2. API on http://localhost:5000
@@ -40,7 +49,7 @@ npm run seed    # 12 products + admin@souq.local / admin12345
 npm run dev
 
 # 3. Client on http://localhost:5173 (proxies /api to :5000)
-cd client
+cd ../client
 npm install
 npm run dev
 ```
