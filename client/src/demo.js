@@ -7,7 +7,7 @@ const PRODUCTS = [
   { _id: "d2", name: "Xiaomi Redmi Watch 4", slug: "xiaomi-redmi-watch-4", category: "Electronics", price: 3499, stock: 12, rating: 4.3, imageUrl: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&q=80", description: "1.97 inch AMOLED display smartwatch with 18-day battery life, GPS, and 150+ sport modes." },
   { _id: "d3", name: "Logitech K380 Keyboard", slug: "logitech-k380-keyboard", category: "Electronics", price: 1850, stock: 30, rating: 4.7, imageUrl: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&q=80", description: "Compact multi-device Bluetooth keyboard. Pair with up to three devices and switch with one tap." },
   { _id: "d4", name: "Cotton Oversized T-Shirt - Sand", slug: "cotton-oversized-t-shirt-sand", category: "Fashion", price: 450, stock: 60, rating: 4.2, imageUrl: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80", description: "240gsm Egyptian cotton tee with a relaxed fit. Pre-shrunk and garment dyed." },
-  { _id: "d5", name: "Canvas Tote Bag", slug: "canvas-tote-bag", category: "Fashion", price: 275, stock: 45, rating: 4.0, imageUrl: "https://images.unsplash.com/photo-1597484662317-9bd7bdda2907?w=800&q=80", description: "12oz natural canvas tote with an inner pocket. Fits a 15 inch laptop." },
+  { _id: "d5", name: "Canvas Tote Bag", slug: "canvas-tote-bag", category: "Fashion", price: 275, stock: 45, rating: 4.0, imageUrl: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&q=80", description: "12oz natural canvas tote with an inner pocket. Fits a 15 inch laptop." },
   { _id: "d6", name: "Ceramic Pour-Over Coffee Set", slug: "ceramic-pour-over-coffee-set", category: "Home", price: 980, stock: 15, rating: 4.6, imageUrl: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80", description: "Hand-glazed ceramic dripper with a 600ml carafe. Brews two generous cups." },
   { _id: "d7", name: "Stainless Steel Water Bottle 750ml", slug: "stainless-steel-water-bottle-750ml", category: "Home", price: 520, stock: 80, rating: 4.4, imageUrl: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=800&q=80", description: "Double-wall insulated bottle. Keeps drinks cold 24 hours or hot 12." },
   { _id: "d8", name: "Desk Lamp with Wireless Charger", slug: "desk-lamp-with-wireless-charger", category: "Home", price: 1150, stock: 18, rating: 4.1, imageUrl: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=800&q=80", description: "Dimmable LED desk lamp with a 15W wireless charging pad built into the base." },
@@ -82,4 +82,4 @@ export function demoApi(path, { method = "GET", body } = {}) {
     return Promise.resolve({ orders: load("souq_demo_orders", []).filter((o) => o.user === me.id) });
   }
   throw new Error("Not found");
-}
+    }
