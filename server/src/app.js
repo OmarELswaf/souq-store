@@ -21,4 +21,4 @@ export function createApp() {
 
   app.use((_req, res) => res.status(404).json({ message: "Not found" }));
   return app;
-    }
+}
