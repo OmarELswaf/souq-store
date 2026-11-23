@@ -6,7 +6,12 @@ export default function Cart() {
   if (cart.length === 0) return <p className="muted">Your cart is empty. <Link to="/">Keep shopping</Link></p>;
   return (
     <>
-      <h1>Cart</h1>
+      <h1 className="page-head">Your cart</h1>
+      <div className="steps">
+        <span className="step on"><b>1</b> Cart</span><span className="sep">——</span>
+        <span className="step"><b>2</b> Delivery</span><span className="sep">——</span>
+        <span className="step"><b>3</b> Done</span>
+      </div>
       {cart.map((l) => (
         <div className="cart-line" key={l.product._id}>
           <img src={l.product.imageUrl} alt="" />
