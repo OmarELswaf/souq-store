@@ -33,7 +33,21 @@ ordersRouter.post("/", requireAuth, async (req, res) => {
     lineItems.push({ product: product._id, name: product.name, price: product.price, qty });
   }
 
-  await Promise.all(lineItems.map((li) => Product.updateOne({ _id: li.product }, { $inc: { stock: -li.qty } })));
+  // Decrement stock conditionally so two simultaneous orders cannot
+  // oversell the last units; roll back any earlier lines on failure.
+  const decremented = [];
+  for (const li of lineItems) {
+    const result = await Product.updateOne(
+      { _id: li.product, stock: { $gte: li.qty } },
+      { $inc: { stock: -li.qty } }
+    );
+    if (result.modifiedCount === 0) {
+      await Promise.all(decremented.map((d) =>
+        Product.updateOne({ _id: d.product }, { $inc: { stock: d.qty } })));
+      return res.status(409).json({ message: `Only just ran out of ${li.name}` });
+    }
+    decremented.push(li);
+  }
 
   const order = await Order.create({
     user: req.user._id,
@@ -49,4 +63,29 @@ ordersRouter.post("/", requireAuth, async (req, res) => {
 ordersRouter.get("/mine", requireAuth, async (req, res) => {
   const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
   res.json({ orders });
+});
+
+ordersRouter.get("/mine/:id", requireAuth, async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id))
+    return res.status(400).json({ message: "Invalid order id" });
+  const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
+  if (!order) return res.status(404).json({ message: "Order not found" });
+  res.json({ order });
+});
+
+const CUSTOMER_CANCELLABLE = ["pending", "confirmed"];
+
+ordersRouter.post("/mine/:id/cancel", requireAuth, async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id))
+    return res.status(400).json({ message: "Invalid order id" });
+  const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
+  if (!order) return res.status(404).json({ message: "Order not found" });
+  if (!CUSTOMER_CANCELLABLE.includes(order.status))
+    return res.status(409).json({ message: `An order that is ${order.status} can no longer be cancelled` });
+
+  await Promise.all(order.items.map((li) =>
+    Product.updateOne({ _id: li.product }, { $inc: { stock: li.qty } })));
+  order.status = "cancelled";
+  await order.save();
+  res.json({ order });
 });

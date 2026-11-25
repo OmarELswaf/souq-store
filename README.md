@@ -19,8 +19,13 @@ not connected (a banner says so); the full stack below is the real app.
 - Cart with quantity limits tied to real stock
 - JWT auth (register / login / session restore), bcrypt password hashing
 - Checkout creates an order: server prices every line from the database,
-  checks stock and decrements it atomically
-- Order history per account
+  checks stock and decrements it atomically (conditional update, race-safe)
+- Order history per account, order detail, and customer cancellation with
+  stock restore while the order is still pending or confirmed
+- Admin API: product create / update / delete, full order list with status
+  workflow (pending -> confirmed -> shipped -> delivered, cancel restores
+  stock and blocks bad transitions), dashboard stats (revenue, orders by
+  status, low stock) and the customer list
 - API tests covering auth, listing, ordering and stock rules (node:test + supertest + mongodb-memory-server)
 - Helmet + CORS + JSON body limits on the API
 
@@ -72,6 +77,16 @@ cd server && npm test
 | GET | /api/products/:slug | - | One product |
 | POST | /api/orders | Bearer | Place order (cash on delivery) |
 | GET | /api/orders/mine | Bearer | My orders |
+| GET | /api/orders/mine/:id | Bearer | One of my orders |
+| POST | /api/orders/mine/:id/cancel | Bearer | Cancel my pending/confirmed order |
+| POST | /api/admin/products | Admin | Create a product |
+| PATCH | /api/admin/products/:id | Admin | Update a product |
+| DELETE | /api/admin/products/:id | Admin | Delete a product |
+| GET | /api/admin/orders | Admin | All orders, filter by status |
+| GET | /api/admin/orders/:id | Admin | One order with customer |
+| PATCH | /api/admin/orders/:id/status | Admin | Move an order through the workflow |
+| GET | /api/admin/stats | Admin | Revenue, orders by status, low stock |
+| GET | /api/admin/users | Admin | Customer list |
 
 ## Notes
 
