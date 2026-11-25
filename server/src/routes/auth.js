@@ -26,3 +26,20 @@ authRouter.post("/login", async (req, res) => {
 });
 
 authRouter.get("/me", requireAuth, (req, res) => res.json({ user: publicUser(req.user) }));
+
+authRouter.patch("/me", requireAuth, async (req, res) => {
+  const { name, address } = req.body || {};
+  if (name != null) {
+    if (!String(name).trim()) return res.status(400).json({ message: "Name cannot be empty" });
+    req.user.name = String(name).trim();
+  }
+  if (address != null) {
+    req.user.address = {
+      city: String(address.city || "").trim(),
+      street: String(address.street || "").trim(),
+      phone: String(address.phone || "").trim(),
+    };
+  }
+  await req.user.save();
+  res.json({ user: publicUser(req.user) });
+});

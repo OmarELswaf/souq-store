@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api.js";
 import { useStore } from "../store.jsx";
@@ -9,6 +9,14 @@ export default function Checkout() {
   const [error, setError] = useState("");
   const [placing, setPlacing] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.address) setForm((f) => ({
+      city: f.city || user.address.city || "",
+      street: f.street || user.address.street || "",
+      phone: f.phone || user.address.phone || "",
+    }));
+  }, [user]);
 
   if (cart.length === 0) return <p className="muted">Nothing to check out. <Link to="/">Back to shop</Link></p>;
   if (!user) return <p className="muted">Please <Link to="/login">sign in</Link> to place your order.</p>;

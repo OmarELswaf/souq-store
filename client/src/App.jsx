@@ -8,6 +8,9 @@ import Cart from "./pages/Cart.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import Login from "./pages/Login.jsx";
 import Orders from "./pages/Orders.jsx";
+import OrderDetail from "./pages/OrderDetail.jsx";
+import Profile from "./pages/Profile.jsx";
+import Admin from "./pages/Admin.jsx";
 
 function CartDrawer() {
   const { cart, setQty, subtotal, drawerOpen, setDrawerOpen } = useStore();
@@ -113,11 +116,12 @@ export default function App() {
           <nav>
             <NavLink to="/">Shop</NavLink>
             {user && <NavLink to="/orders">My orders</NavLink>}
+            {user?.role === "admin" && <NavLink to="/admin">Admin</NavLink>}
           </nav>
           <div className="topbar-right">
             {user ? (
               <>
-                <span className="hi">Hi, {user.name.split(" ")[0]}</span>
+                <NavLink to="/profile" className="hi">Hi, {user.name.split(" ")[0]}</NavLink>
                 <button className="link" onClick={() => { logout(); navigate("/"); }}>Log out</button>
               </>
             ) : (
@@ -139,6 +143,9 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/login" element={<Login />} />
           <Route path="/orders" element={<Orders />} />
+          <Route path="/orders/:id" element={<OrderDetail />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>
       <footer className="footer">Souq - a MERN stack demo store by Omar Elsawaf. Cash on delivery only, demo data.</footer>

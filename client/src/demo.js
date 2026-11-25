@@ -39,6 +39,19 @@ export function demoApi(path, { method = "GET", body } = {}) {
     const { password, ...pub } = user;
     return Promise.resolve({ token: pub.token, user: pub });
   }
+  if (path === "/auth/me" && method === "PATCH") {
+    if (!me) throw new Error("Authentication required");
+    if (body.name != null) {
+      if (!String(body.name).trim()) throw new Error("Name cannot be empty");
+      me.name = String(body.name).trim();
+    }
+    if (body.address != null) me.address = {
+      city: String(body.address.city || ""), street: String(body.address.street || ""), phone: String(body.address.phone || ""),
+    };
+    save("souq_demo_users", users);
+    const { password, ...pub } = me;
+    return Promise.resolve({ user: pub });
+  }
   if (path === "/auth/me") {
     if (!me) throw new Error("Authentication required");
     const { password, ...pub } = me;
@@ -80,6 +93,20 @@ export function demoApi(path, { method = "GET", body } = {}) {
   if (path === "/orders/mine") {
     if (!me) throw new Error("Authentication required");
     return Promise.resolve({ orders: load("souq_demo_orders", []).filter((o) => o.user === me.id) });
+  }
+  const mineMatch = path.match(/^\/orders\/mine\/([^/]+)(\/cancel)?$/);
+  if (mineMatch) {
+    if (!me) throw new Error("Authentication required");
+    const orders = load("souq_demo_orders", []);
+    const order = orders.find((o) => o._id === mineMatch[1] && o.user === me.id);
+    if (!order) throw new Error("Order not found");
+    if (mineMatch[2]) {
+      if (!["pending", "confirmed"].includes(order.status))
+        throw new Error(`An order that is ${order.status} can no longer be cancelled`);
+      order.status = "cancelled";
+      save("souq_demo_orders", orders);
+    }
+    return Promise.resolve({ order });
   }
   throw new Error("Not found");
     }

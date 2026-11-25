@@ -25,6 +25,7 @@ export default function Orders() {
           </div>
           {o.items.map((i) => <p key={i.product} className="muted">{i.name} x{i.qty} - {i.price.toLocaleString()} EGP</p>)}
           <p className="muted">Deliver to: {o.shippingAddress.street}, {o.shippingAddress.city} ({o.shippingAddress.phone})</p>
+          <Link to={`/orders/${o._id}`} className="link">View details →</Link>
         </div>
       ))}
     </>

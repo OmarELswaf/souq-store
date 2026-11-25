@@ -26,6 +26,12 @@ not connected (a banner says so); the full stack below is the real app.
   workflow (pending -> confirmed -> shipped -> delivered, cancel restores
   stock and blocks bad transitions), dashboard stats (revenue, orders by
   status, low stock) and the customer list
+- Admin dashboard UI (/admin): overview cards, product table with
+  create/edit/delete, order board with one-click status moves
+- Order detail page with a visual status tracker and a cancel button
+- Account page (/profile) with name and default delivery address; checkout
+  pre-fills the address from the profile
+- Catalog pagination (12 per page with Prev/Next)
 - API tests covering auth, listing, ordering and stock rules (node:test + supertest + mongodb-memory-server)
 - Helmet + CORS + JSON body limits on the API
 
@@ -72,6 +78,7 @@ cd server && npm test
 | POST | /api/auth/register | - | Create account, returns JWT |
 | POST | /api/auth/login | - | Sign in, returns JWT |
 | GET | /api/auth/me | Bearer | Current user |
+| PATCH | /api/auth/me | Bearer | Update name / default address |
 | GET | /api/products | - | List, supports q, category, sort, page, limit |
 | GET | /api/products/categories | - | Distinct categories |
 | GET | /api/products/:slug | - | One product |

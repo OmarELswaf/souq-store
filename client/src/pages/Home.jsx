@@ -106,22 +106,24 @@ function QuickView({ product, onClose }) {
 }
 
 export default function Home() {
-  const [data, setData] = useState({ items: [], total: 0 });
+  const [data, setData] = useState({ items: [], total: 0, pages: 1 });
   const [categories, setCategories] = useState([]);
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("newest");
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [quickView, setQuickView] = useState(null);
   const { addToCart } = useStore();
   const shopRef = useRef(null);
 
   useEffect(() => { api("/products/categories").then((d) => setCategories(d.categories)); }, []);
+  useEffect(() => { setPage(1); }, [q, category, sort]);
   useEffect(() => {
     setLoading(true);
-    const params = new URLSearchParams({ sort, ...(q && { q }), ...(category && { category }) });
+    const params = new URLSearchParams({ sort, page, limit: 12, ...(q && { q }), ...(category && { category }) });
     api(`/products?${params}`).then(setData).finally(() => setLoading(false));
-  }, [q, category, sort]);
+  }, [q, category, sort, page]);
 
   return (
     <>
@@ -170,6 +172,13 @@ export default function Home() {
         <div className="grid">
           {data.items.map((p) => <ProductCard p={p} key={p._id} onQuickView={setQuickView} />)}
           {data.items.length === 0 && <p className="muted">No products match your search.</p>}
+        </div>
+      )}
+      {data.pages > 1 && (
+        <div className="pagination">
+          <button className="btn-ghost" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>← Prev</button>
+          <span className="muted">Page {page} of {data.pages} · {data.total} products</span>
+          <button className="btn-ghost" disabled={page >= data.pages} onClick={() => setPage((p) => p + 1)}>Next →</button>
         </div>
       )}
       {quickView && <QuickView product={quickView} onClose={() => setQuickView(null)} />}

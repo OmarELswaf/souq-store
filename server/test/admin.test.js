@@ -130,6 +130,18 @@ test("admin stats report revenue excluding cancelled orders", async () => {
   assert.equal(typeof res.body.ordersByStatus.cancelled, "number");
 });
 
+test("profile update saves name and address", async () => {
+  const res = await asCustomer(request(app).patch("/api/auth/me"))
+    .send({ name: "Updated Name", address: { city: "Giza", street: "9 Palm St", phone: "01111111111" } });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.user.name, "Updated Name");
+  assert.equal(res.body.user.address.city, "Giza");
+  const me = await asCustomer(request(app).get("/api/auth/me"));
+  assert.equal(me.body.user.address.phone, "01111111111");
+  const bad = await asCustomer(request(app).patch("/api/auth/me")).send({ name: "  " });
+  assert.equal(bad.status, 400);
+});
+
 test("simultaneous orders cannot oversell the last units", async () => {
   const scarce = await Product.create({
     name: "Scarce Item", slug: "scarce-item", description: "One left",

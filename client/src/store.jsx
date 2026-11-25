@@ -51,7 +51,7 @@ export function StoreProvider({ children }) {
   const count = cart.reduce((s, l) => s + l.qty, 0);
 
   return (
-    <Store.Provider value={{ user, cart, count, subtotal, addToCart, setQty, clearCart, login, register, logout, drawerOpen, setDrawerOpen, toasts, toast }}>
+    <Store.Provider value={{ user, setUser, cart, count, subtotal, addToCart, setQty, clearCart, login, register, logout, drawerOpen, setDrawerOpen, toasts, toast }}>
       {children}
     </Store.Provider>
   );
