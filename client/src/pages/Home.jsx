@@ -25,13 +25,13 @@ function Stars({ rating }) {
 }
 
 function ProductCard({ p, onQuickView }) {
-  const { addToCart } = useStore();
-  const [liked, setLiked] = useState(false);
+  const { addToCart, user, wishlist, toggleWishlist } = useStore();
+  const liked = wishlist.includes(p._id);
   return (
     <div className="card">
       <div className="card-media">
         <Link to={`/product/${p.slug}`}><img src={p.imageUrl} alt={p.name} loading="lazy" /></Link>
-        <button className={`heart ${liked ? "on" : ""}`} onClick={() => setLiked(!liked)} aria-label="Save to wishlist">{liked ? "♥" : "♡"}</button>
+        <button className={`heart ${liked ? "on" : ""}`} onClick={() => (user ? toggleWishlist(p) : onQuickView(p))} aria-label="Save to wishlist">{liked ? "♥" : "♡"}</button>
         <span className="rating-badge">★ {p.rating}</span>
         <button className="quick-view" onClick={() => onQuickView(p)}>Quick view</button>
         {p.stock === 0 && <span className="soldout">Sold out</span>}

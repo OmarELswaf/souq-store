@@ -32,6 +32,13 @@ not connected (a banner says so); the full stack below is the real app.
 - Account page (/profile) with name and default delivery address; checkout
   pre-fills the address from the profile
 - Catalog pagination (12 per page with Prev/Next)
+- Product reviews: signed-in customers post one review per product (a second
+  post updates it), and the product rating recalculates from real reviews
+- Wishlist: heart toggle on product cards, /wishlist page, stored per account
+- Discount coupons: admin creates codes (percent + minimum subtotal), the
+  customer applies one at checkout with live feedback, and the server
+  re-prices the discount authoritatively when the order is placed
+- Admin coupon manager under /admin -> Coupons
 - API tests covering auth, listing, ordering and stock rules (node:test + supertest + mongodb-memory-server)
 - Helmet + CORS + JSON body limits on the API
 
@@ -56,7 +63,7 @@ docker compose up -d
 cd server
 cp .env.example .env
 npm install
-npm run seed    # 12 products + admin@souq.local / admin12345
+npm run seed    # 12 products, admin@souq.local / admin12345, coupon WELCOME10
 npm run dev
 
 # 3. Client on http://localhost:5173 (proxies /api to :5000)
@@ -94,6 +101,15 @@ cd server && npm test
 | PATCH | /api/admin/orders/:id/status | Admin | Move an order through the workflow |
 | GET | /api/admin/stats | Admin | Revenue, orders by status, low stock |
 | GET | /api/admin/users | Admin | Customer list |
+| GET | /api/products/:slug/reviews | - | Product reviews |
+| POST | /api/products/:slug/reviews | Bearer | Post/update my review |
+| DELETE | /api/products/:slug/reviews/mine | Bearer | Delete my review |
+| GET | /api/wishlist | Bearer | My wishlist |
+| POST | /api/wishlist/:productId | Bearer | Toggle product in wishlist |
+| POST | /api/coupons/validate | Bearer | Live coupon check at checkout |
+| GET | /api/admin/coupons | Admin | List coupons |
+| POST | /api/admin/coupons | Admin | Create a coupon |
+| PATCH | /api/admin/coupons/:id | Admin | Update / deactivate a coupon |
 
 ## Notes
 

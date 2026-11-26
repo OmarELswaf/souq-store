@@ -62,6 +62,9 @@ export default function OrderDetail() {
           </div>
         ))}
         <div className="order-line muted"><span>Subtotal</span><span>{order.subtotal.toLocaleString()} EGP</span></div>
+        {order.discount > 0 && (
+          <div className="order-line coupon-ok"><span>Discount {order.couponCode && `(${order.couponCode})`}</span><span>-{order.discount.toLocaleString()} EGP</span></div>
+        )}
         <div className="order-line muted"><span>Shipping</span><span>{order.shippingFee.toLocaleString()} EGP</span></div>
         <div className="order-line total"><span>Total</span><strong>{order.total.toLocaleString()} EGP</strong></div>
         <p className="muted">Cash on delivery · Deliver to: {order.shippingAddress.street}, {order.shippingAddress.city} ({order.shippingAddress.phone})</p>

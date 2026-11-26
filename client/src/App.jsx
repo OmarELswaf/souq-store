@@ -10,6 +10,7 @@ import Login from "./pages/Login.jsx";
 import Orders from "./pages/Orders.jsx";
 import OrderDetail from "./pages/OrderDetail.jsx";
 import Profile from "./pages/Profile.jsx";
+import Wishlist from "./pages/Wishlist.jsx";
 import Admin from "./pages/Admin.jsx";
 
 function CartDrawer() {
@@ -116,6 +117,7 @@ export default function App() {
           <nav>
             <NavLink to="/">Shop</NavLink>
             {user && <NavLink to="/orders">My orders</NavLink>}
+            {user && <NavLink to="/wishlist">Wishlist</NavLink>}
             {user?.role === "admin" && <NavLink to="/admin">Admin</NavLink>}
           </nav>
           <div className="topbar-right">
@@ -145,6 +147,7 @@ export default function App() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/orders/:id" element={<OrderDetail />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>

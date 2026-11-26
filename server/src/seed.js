@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { connectDB } from "./config/db.js";
 import { Product } from "./models/Product.js";
 import { User } from "./models/User.js";
+import { Coupon } from "./models/Coupon.js";
 
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
@@ -30,4 +31,8 @@ await User.deleteOne({ email: adminEmail });
 await User.create({ name: "Store Admin", email: adminEmail, passwordHash: await User.hashPassword("admin12345"), role: "admin" });
 
 console.log(`Seeded ${products.length} products and admin account (${adminEmail})`);
+
+await Coupon.deleteMany({});
+await Coupon.create({ code: "WELCOME10", percent: 10, minSubtotal: 0 });
+console.log("Seeded coupon WELCOME10 (10% off)");
 await mongoose.disconnect();

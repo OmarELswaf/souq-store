@@ -7,6 +7,8 @@ import { authRouter } from "./routes/auth.js";
 import { productsRouter } from "./routes/products.js";
 import { ordersRouter } from "./routes/orders.js";
 import { adminRouter } from "./routes/admin.js";
+import { wishlistRouter } from "./routes/wishlist.js";
+import { couponsRouter } from "./routes/coupons.js";
 
 export function createApp() {
   const app = express();
@@ -20,6 +22,8 @@ export function createApp() {
   app.use("/api/products", productsRouter);
   app.use("/api/orders", ordersRouter);
   app.use("/api/admin", adminRouter);
+  app.use("/api/wishlist", wishlistRouter);
+  app.use("/api/coupons", couponsRouter);
 
   app.use((_req, res) => res.status(404).json({ message: "Not found" }));
   return app;

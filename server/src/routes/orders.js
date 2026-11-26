@@ -3,13 +3,14 @@ import mongoose from "mongoose";
 import { Order } from "../models/Order.js";
 import { Product } from "../models/Product.js";
 import { requireAuth } from "../middleware/auth.js";
+import { Coupon } from "../models/Coupon.js";
 
 export const ordersRouter = Router();
 
 const SHIPPING_FEE = 50; // EGP flat
 
 ordersRouter.post("/", requireAuth, async (req, res) => {
-  const { items, shippingAddress } = req.body || {};
+  const { items, shippingAddress, couponCode } = req.body || {};
   if (!Array.isArray(items) || items.length === 0)
     return res.status(400).json({ message: "Order must contain at least one item" });
   if (!shippingAddress?.city || !shippingAddress?.street || !shippingAddress?.phone)
@@ -33,6 +34,17 @@ ordersRouter.post("/", requireAuth, async (req, res) => {
     lineItems.push({ product: product._id, name: product.name, price: product.price, qty });
   }
 
+  let discount = 0;
+  let appliedCode = "";
+  if (couponCode) {
+    const coupon = await Coupon.findOne({ code: String(couponCode).toUpperCase().trim(), active: true });
+    if (!coupon) return res.status(400).json({ message: "This coupon code is not valid" });
+    if (subtotal < coupon.minSubtotal)
+      return res.status(400).json({ message: `This code needs a subtotal of at least ${coupon.minSubtotal} EGP` });
+    discount = Math.round(subtotal * coupon.percent / 100);
+    appliedCode = coupon.code;
+  }
+
   // Decrement stock conditionally so two simultaneous orders cannot
   // oversell the last units; roll back any earlier lines on failure.
   const decremented = [];
@@ -53,8 +65,10 @@ ordersRouter.post("/", requireAuth, async (req, res) => {
     user: req.user._id,
     items: lineItems,
     subtotal,
+    discount,
+    couponCode: appliedCode,
     shippingFee: SHIPPING_FEE,
-    total: subtotal + SHIPPING_FEE,
+    total: subtotal - discount + SHIPPING_FEE,
     shippingAddress,
   });
   res.status(201).json({ order });

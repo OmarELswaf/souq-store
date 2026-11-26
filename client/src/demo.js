@@ -59,6 +59,21 @@ export function demoApi(path, { method = "GET", body } = {}) {
   }
   if (path === "/products/categories") return Promise.resolve({ categories: [...new Set(PRODUCTS.map((p) => p.category))] });
 
+  const revMatch = path.match(/^\/products\/([^/]+)\/reviews$/);
+  if (revMatch) {
+    const key = "souq_demo_reviews_" + revMatch[1];
+    const reviews = load(key, []);
+    if (method === "GET") return Promise.resolve({ reviews });
+    if (method === "POST") {
+      if (!me) throw new Error("Authentication required");
+      const rating = Number(body.rating);
+      if (!Number.isInteger(rating) || rating < 1 || rating > 5) throw new Error("Rating must be a whole number from 1 to 5");
+      const rest = reviews.filter((r) => r.user !== me.id);
+      const review = { _id: "r" + Date.now(), user: me.id, name: me.name, rating, comment: String(body.comment || "").slice(0, 1000), createdAt: new Date().toISOString() };
+      save(key, [review, ...rest]);
+      return Promise.resolve({ review });
+    }
+  }
   const productMatch = path.match(/^\/products\/([^?]+)$/);
   if (productMatch) {
     const product = PRODUCTS.find((p) => p.slug === productMatch[1]);
@@ -84,11 +99,37 @@ export function demoApi(path, { method = "GET", body } = {}) {
       return { product: p._id, name: p.name, price: p.price, qty: Math.max(1, i.qty | 0) };
     });
     const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+    let discount = 0, couponCode = "";
+    if (body.couponCode) {
+      if (String(body.couponCode).toUpperCase() !== "WELCOME10") throw new Error("This coupon code is not valid");
+      discount = Math.round(subtotal * 0.10);
+      couponCode = "WELCOME10";
+    }
     const orders = load("souq_demo_orders", []);
-    const order = { _id: "o" + Date.now(), user: me.id, items, subtotal, shippingFee: 50, total: subtotal + 50, status: "pending", shippingAddress: body.shippingAddress, createdAt: new Date().toISOString() };
+    const order = { _id: "o" + Date.now(), user: me.id, items, subtotal, discount, couponCode, shippingFee: 50, total: subtotal - discount + 50, status: "pending", shippingAddress: body.shippingAddress, createdAt: new Date().toISOString() };
     orders.unshift(order);
     save("souq_demo_orders", orders);
     return Promise.resolve({ order });
+  }
+  if (path === "/coupons/validate" && method === "POST") {
+    if (!me) throw new Error("Authentication required");
+    if (String(body.code || "").toUpperCase() !== "WELCOME10") throw new Error("This code is not valid");
+    const sub = Number(body.subtotal) || 0;
+    return Promise.resolve({ code: "WELCOME10", percent: 10, discount: Math.round(sub * 0.10) });
+  }
+  if (path === "/wishlist") {
+    if (!me) throw new Error("Authentication required");
+    const ids = load("souq_demo_wishlist_" + me.id, []);
+    return Promise.resolve({ products: PRODUCTS.filter((p) => ids.includes(p._id)) });
+  }
+  const wishMatch = path.match(/^\/wishlist\/([^/]+)$/);
+  if (wishMatch && method === "POST") {
+    if (!me) throw new Error("Authentication required");
+    const key = "souq_demo_wishlist_" + me.id;
+    const ids = load(key, []);
+    const has = ids.includes(wishMatch[1]);
+    save(key, has ? ids.filter((x) => x !== wishMatch[1]) : [...ids, wishMatch[1]]);
+    return Promise.resolve({ inWishlist: !has });
   }
   if (path === "/orders/mine") {
     if (!me) throw new Error("Authentication required");

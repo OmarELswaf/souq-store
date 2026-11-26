@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { Order } from "../models/Order.js";
 import { Product } from "../models/Product.js";
 import { User } from "../models/User.js";
+import { Coupon } from "../models/Coupon.js";
 import { requireAuth, requireAdmin } from "../middleware/auth.js";
 import { slugify } from "../utils/slug.js";
 
@@ -126,6 +127,33 @@ adminRouter.get("/stats", async (_req, res) => {
     customerCount: userCount,
     lowStock,
   });
+});
+
+// ---------- Coupons ----------
+
+adminRouter.get("/coupons", async (_req, res) => {
+  res.json({ coupons: await Coupon.find().sort({ createdAt: -1 }) });
+});
+
+adminRouter.post("/coupons", async (req, res) => {
+  const { code, percent, minSubtotal = 0 } = req.body || {};
+  const pct = Number(percent);
+  if (!code || !String(code).trim()) return res.status(400).json({ message: "A code is required" });
+  if (!Number.isFinite(pct) || pct < 1 || pct > 100)
+    return res.status(400).json({ message: "Percent must be between 1 and 100" });
+  const exists = await Coupon.findOne({ code: String(code).toUpperCase().trim() });
+  if (exists) return res.status(409).json({ message: "That code already exists" });
+  const coupon = await Coupon.create({ code: String(code).toUpperCase().trim(), percent: pct, minSubtotal: Number(minSubtotal) || 0 });
+  res.status(201).json({ coupon });
+});
+
+adminRouter.patch("/coupons/:id", async (req, res) => {
+  if (!isValidId(req.params.id)) return res.status(400).json({ message: "Invalid coupon id" });
+  const updates = {};
+  for (const key of ["percent", "minSubtotal", "active"]) if (key in (req.body || {})) updates[key] = req.body[key];
+  const coupon = await Coupon.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
+  if (!coupon) return res.status(404).json({ message: "Coupon not found" });
+  res.json({ coupon });
 });
 
 // ---------- Users ----------

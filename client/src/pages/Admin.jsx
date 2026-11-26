@@ -185,7 +185,65 @@ function Orders() {
   );
 }
 
-const TABS = { stats: "Overview", products: "Products", orders: "Orders" };
+function Coupons() {
+  const [coupons, setCoupons] = useState([]);
+  const [form, setForm] = useState({ code: "", percent: "", minSubtotal: "" });
+  const [error, setError] = useState("");
+  const { toast } = useStore();
+
+  const load = () => api("/admin/coupons").then((d) => setCoupons(d.coupons));
+  useEffect(() => { load(); }, []);
+
+  const create = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      await api("/admin/coupons", { method: "POST", body: {
+        code: form.code, percent: Number(form.percent), minSubtotal: Number(form.minSubtotal) || 0,
+      }});
+      toast("Coupon created");
+      setForm({ code: "", percent: "", minSubtotal: "" });
+      load();
+    } catch (err) { setError(err.message); }
+  };
+
+  const toggle = async (c) => {
+    await api(`/admin/coupons/${c._id}`, { method: "PATCH", body: { active: !c.active } });
+    load();
+  };
+
+  return (
+    <>
+      <form className="form panel" onSubmit={create}>
+        <h4>New coupon</h4>
+        <div className="form-row">
+          <label>Code<input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} required placeholder="WELCOME10" /></label>
+          <label>Percent off<input type="number" min="1" max="100" value={form.percent} onChange={(e) => setForm({ ...form, percent: e.target.value })} required /></label>
+          <label>Min subtotal (EGP)<input type="number" min="0" value={form.minSubtotal} onChange={(e) => setForm({ ...form, minSubtotal: e.target.value })} placeholder="0" /></label>
+        </div>
+        {error && <p className="error">{error}</p>}
+        <div className="form-actions"><button className="btn-primary" type="submit">Create</button></div>
+      </form>
+      <table className="table">
+        <thead><tr><th>Code</th><th>Discount</th><th>Min subtotal</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {coupons.map((c) => (
+            <tr key={c._id}>
+              <td><strong>{c.code}</strong></td>
+              <td>{c.percent}%</td>
+              <td>{c.minSubtotal ? `${c.minSubtotal.toLocaleString()} EGP` : "-"}</td>
+              <td><span className={`status ${c.active ? "delivered" : "cancelled"}`}>{c.active ? "active" : "off"}</span></td>
+              <td className="row-actions"><button className="link" onClick={() => toggle(c)}>{c.active ? "Deactivate" : "Activate"}</button></td>
+            </tr>
+          ))}
+          {coupons.length === 0 && <tr><td colSpan="5" className="muted">No coupons yet.</td></tr>}
+        </tbody>
+      </table>
+    </>
+  );
+}
+
+const TABS = { stats: "Overview", products: "Products", orders: "Orders", coupons: "Coupons" };
 
 export default function Admin() {
   const { user } = useStore();
@@ -207,6 +265,7 @@ export default function Admin() {
       {tab === "stats" && <Stats />}
       {tab === "products" && <Products />}
       {tab === "orders" && <Orders />}
+      {tab === "coupons" && <Coupons />}
     </>
   );
 }

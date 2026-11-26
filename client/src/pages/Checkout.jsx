@@ -6,6 +6,9 @@ import { useStore } from "../store.jsx";
 export default function Checkout() {
   const { user, cart, subtotal, clearCart } = useStore();
   const [form, setForm] = useState({ city: "", street: "", phone: "" });
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState(null); // { code, percent, discount }
+  const [couponMsg, setCouponMsg] = useState("");
   const [error, setError] = useState("");
   const [placing, setPlacing] = useState(false);
   const navigate = useNavigate();
@@ -21,7 +24,17 @@ export default function Checkout() {
   if (cart.length === 0) return <p className="muted">Nothing to check out. <Link to="/">Back to shop</Link></p>;
   if (!user) return <p className="muted">Please <Link to="/login">sign in</Link> to place your order.</p>;
 
-  const total = subtotal + 50;
+  const discount = coupon?.discount || 0;
+  const total = subtotal - discount + 50;
+
+  const applyCoupon = async () => {
+    setCouponMsg(""); setCoupon(null);
+    try {
+      const d = await api("/coupons/validate", { method: "POST", body: { code: couponInput, subtotal } });
+      setCoupon(d);
+      setCouponMsg(`${d.code} applied: ${d.percent}% off (-${d.discount.toLocaleString()} EGP)`);
+    } catch (err) { setCouponMsg(err.message); }
+  };
 
   const placeOrder = async (e) => {
     e.preventDefault();
@@ -30,6 +43,7 @@ export default function Checkout() {
       await api("/orders", { method: "POST", body: {
         items: cart.map((l) => ({ productId: l.product._id, qty: l.qty })),
         shippingAddress: form,
+        ...(coupon && { couponCode: coupon.code }),
       }});
       clearCart();
       navigate("/orders");
@@ -57,6 +71,12 @@ export default function Checkout() {
       <aside className="form-card">
         <h2>Order summary</h2>
         {cart.map((l) => <p key={l.product._id} className="sum-line"><span>{l.product.name} x{l.qty}</span><span>{(l.product.price * l.qty).toLocaleString()} EGP</span></p>)}
+        <div className="coupon-row">
+          <input value={couponInput} onChange={(e) => { setCouponInput(e.target.value); setCoupon(null); setCouponMsg(""); }} placeholder="Coupon code (try WELCOME10)" />
+          <button type="button" className="btn-ghost" onClick={applyCoupon} disabled={!couponInput.trim()}>Apply</button>
+        </div>
+        {couponMsg && <p className={`small ${coupon ? "coupon-ok" : "error"}`}>{couponMsg}</p>}
+        {coupon && <p className="sum-line coupon-ok"><span>Discount ({coupon.code})</span><span>-{discount.toLocaleString()} EGP</span></p>}
         <p className="sum-line"><span>Shipping</span><span>50 EGP</span></p>
         <p className="sum-line total"><span>Total</span><strong>{total.toLocaleString()} EGP</strong></p>
       </aside>

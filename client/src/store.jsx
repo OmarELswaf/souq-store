@@ -6,6 +6,7 @@ export const useStore = () => useContext(Store);
 
 export function StoreProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [wishlist, setWishlist] = useState([]);
   const [cart, setCart] = useState(() => {
     try { return JSON.parse(localStorage.getItem("souq_cart")) || []; } catch { return []; }
   });
@@ -16,6 +17,10 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     if (getToken()) api("/auth/me").then((d) => setUser(d.user)).catch(() => setToken(null));
   }, []);
+  useEffect(() => {
+    if (user) api("/wishlist").then((d) => setWishlist(d.products.map((p) => p._id))).catch(() => {});
+    else setWishlist([]);
+  }, [user]);
   useEffect(() => localStorage.setItem("souq_cart", JSON.stringify(cart)), [cart]);
 
   const toast = (msg) => {
@@ -37,6 +42,13 @@ export function StoreProvider({ children }) {
     setCart((c) => (qty <= 0 ? c.filter((l) => l.product._id !== id) : c.map((l) => (l.product._id === id ? { ...l, qty } : l))));
   const clearCart = () => setCart([]);
 
+  const toggleWishlist = async (product) => {
+    const d = await api(`/wishlist/${product._id}`, { method: "POST" });
+    setWishlist((w) => (d.inWishlist ? [...w, product._id] : w.filter((id) => id !== product._id)));
+    toast(d.inWishlist ? `${product.name} saved to wishlist` : `${product.name} removed from wishlist`);
+    return d.inWishlist;
+  };
+
   const login = async (email, password) => {
     const d = await api("/auth/login", { method: "POST", body: { email, password } });
     setToken(d.token); setUser(d.user);
@@ -51,7 +63,7 @@ export function StoreProvider({ children }) {
   const count = cart.reduce((s, l) => s + l.qty, 0);
 
   return (
-    <Store.Provider value={{ user, setUser, cart, count, subtotal, addToCart, setQty, clearCart, login, register, logout, drawerOpen, setDrawerOpen, toasts, toast }}>
+    <Store.Provider value={{ user, setUser, cart, count, subtotal, addToCart, setQty, clearCart, login, register, logout, drawerOpen, setDrawerOpen, toasts, toast, wishlist, toggleWishlist }}>
       {children}
     </Store.Provider>
   );

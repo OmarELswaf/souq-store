@@ -23,6 +23,8 @@ const orderSchema = new mongoose.Schema(
       default: "pending",
     },
     paymentMethod: { type: String, enum: ["cash_on_delivery"], default: "cash_on_delivery" },
+    discount: { type: Number, default: 0, min: 0 },
+    couponCode: { type: String, default: "" },
     shippingAddress: {
       city: { type: String, required: true },
       street: { type: String, required: true },
