@@ -10,7 +10,9 @@ export const ordersRouter = Router();
 const SHIPPING_FEE = 50; // EGP flat
 
 ordersRouter.post("/", requireAuth, async (req, res) => {
-  const { items, shippingAddress, couponCode } = req.body || {};
+  const { items, shippingAddress, couponCode, paymentMethod = "cash_on_delivery" } = req.body || {};
+  if (!["cash_on_delivery", "card"].includes(paymentMethod))
+    return res.status(400).json({ message: "Unknown payment method" });
   if (!Array.isArray(items) || items.length === 0)
     return res.status(400).json({ message: "Order must contain at least one item" });
   if (!shippingAddress?.city || !shippingAddress?.street || !shippingAddress?.phone)
@@ -70,6 +72,7 @@ ordersRouter.post("/", requireAuth, async (req, res) => {
     shippingFee: SHIPPING_FEE,
     total: subtotal - discount + SHIPPING_FEE,
     shippingAddress,
+    paymentMethod,
   });
   res.status(201).json({ order });
 });

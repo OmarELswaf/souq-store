@@ -9,6 +9,7 @@ import { ordersRouter } from "./routes/orders.js";
 import { adminRouter } from "./routes/admin.js";
 import { wishlistRouter } from "./routes/wishlist.js";
 import { couponsRouter } from "./routes/coupons.js";
+import { paymentsRouter } from "./routes/payments.js";
 
 export function createApp() {
   const app = express();
@@ -24,6 +25,7 @@ export function createApp() {
   app.use("/api/admin", adminRouter);
   app.use("/api/wishlist", wishlistRouter);
   app.use("/api/coupons", couponsRouter);
+  app.use("/api/payments", paymentsRouter);
 
   app.use((_req, res) => res.status(404).json({ message: "Not found" }));
   return app;

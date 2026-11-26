@@ -22,7 +22,10 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "confirmed", "shipped", "delivered", "cancelled"],
       default: "pending",
     },
-    paymentMethod: { type: String, enum: ["cash_on_delivery"], default: "cash_on_delivery" },
+    paymentMethod: { type: String, enum: ["cash_on_delivery", "card"], default: "cash_on_delivery" },
+    paymentStatus: { type: String, enum: ["unpaid", "paid", "failed"], default: "unpaid" },
+    paymentSessionId: { type: String, default: "" },
+    paymentReference: { type: String, default: "" },
     discount: { type: Number, default: 0, min: 0 },
     couponCode: { type: String, default: "" },
     shippingAddress: {

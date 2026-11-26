@@ -111,6 +111,7 @@ export function demoApi(path, { method = "GET", body } = {}) {
     save("souq_demo_orders", orders);
     return Promise.resolve({ order });
   }
+  if (path === "/payments/config") return Promise.resolve({ enabled: false, gateway: null });
   if (path === "/coupons/validate" && method === "POST") {
     if (!me) throw new Error("Authentication required");
     if (String(body.code || "").toUpperCase() !== "WELCOME10") throw new Error("This code is not valid");

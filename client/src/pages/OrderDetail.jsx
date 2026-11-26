@@ -13,7 +13,15 @@ export default function OrderDetail() {
   const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
-    if (user) api(`/orders/mine/${id}`).then((d) => setOrder(d.order)).catch((e) => setError(e.message));
+    if (!user) return;
+    api(`/orders/mine/${id}`).then(async (d) => {
+      setOrder(d.order);
+      // Returning from Kashier's hosted page: confirm the payment server-side.
+      if (d.order.paymentMethod === "card" && d.order.paymentStatus !== "paid" && d.order.paymentSessionId) {
+        try { const v = await api("/payments/verify", { method: "POST", body: { orderId: d.order._id } }); setOrder(v.order); }
+        catch { /* still unpaid, shown as such */ }
+      }
+    }).catch((e) => setError(e.message));
   }, [user, id]);
 
   if (!user) return <p className="muted">Please <Link to="/login">sign in</Link>.</p>;
@@ -67,7 +75,12 @@ export default function OrderDetail() {
         )}
         <div className="order-line muted"><span>Shipping</span><span>{order.shippingFee.toLocaleString()} EGP</span></div>
         <div className="order-line total"><span>Total</span><strong>{order.total.toLocaleString()} EGP</strong></div>
-        <p className="muted">Cash on delivery · Deliver to: {order.shippingAddress.street}, {order.shippingAddress.city} ({order.shippingAddress.phone})</p>
+        <p className="muted">
+          {order.paymentMethod === "card" ? (
+            <>Card payment (Kashier test mode) · <span className={`status ${order.paymentStatus === "paid" ? "delivered" : "pending"}`}>{order.paymentStatus}</span> · </>
+          ) : "Cash on delivery · "}
+          Deliver to: {order.shippingAddress.street}, {order.shippingAddress.city} ({order.shippingAddress.phone})
+        </p>
       </div>
 
       {cancellable && (

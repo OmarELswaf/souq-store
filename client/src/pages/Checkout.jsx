@@ -11,6 +11,8 @@ export default function Checkout() {
   const [couponMsg, setCouponMsg] = useState("");
   const [error, setError] = useState("");
   const [placing, setPlacing] = useState(false);
+  const [cardEnabled, setCardEnabled] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("cash_on_delivery");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +22,10 @@ export default function Checkout() {
       phone: f.phone || user.address.phone || "",
     }));
   }, [user]);
+
+  useEffect(() => {
+    api("/payments/config").then((d) => setCardEnabled(Boolean(d.enabled))).catch(() => {});
+  }, []);
 
   if (cart.length === 0) return <p className="muted">Nothing to check out. <Link to="/">Back to shop</Link></p>;
   if (!user) return <p className="muted">Please <Link to="/login">sign in</Link> to place your order.</p>;
@@ -40,11 +46,20 @@ export default function Checkout() {
     e.preventDefault();
     setPlacing(true); setError("");
     try {
-      await api("/orders", { method: "POST", body: {
+      const d = await api("/orders", { method: "POST", body: {
         items: cart.map((l) => ({ productId: l.product._id, qty: l.qty })),
         shippingAddress: form,
+        paymentMethod,
         ...(coupon && { couponCode: coupon.code }),
       }});
+      if (paymentMethod === "card") {
+        // Kashier hosted checkout: the customer pays on Kashier's page and
+        // returns to the order page, which verifies the result server-side.
+        const session = await api("/payments/create-session", { method: "POST", body: { orderId: d.order._id } });
+        clearCart();
+        window.location.href = session.sessionUrl;
+        return;
+      }
       clearCart();
       navigate("/orders");
     } catch (err) { setError(err.message); setPlacing(false); }
@@ -64,9 +79,17 @@ export default function Checkout() {
         <label>City<input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Cairo" /></label>
         <label>Street address<input required value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value })} placeholder="12 Abbas El Akkad St, Nasr City" /></label>
         <label>Phone<input required value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="01xxxxxxxxx" /></label>
-        <p className="muted">Payment: cash on delivery.</p>
+        <h2>Payment</h2>
+        <label className="radio-row">
+          <input type="radio" name="pay" checked={paymentMethod === "cash_on_delivery"} onChange={() => setPaymentMethod("cash_on_delivery")} />
+          Cash on delivery
+        </label>
+        <label className={`radio-row ${cardEnabled ? "" : "muted"}`}>
+          <input type="radio" name="pay" disabled={!cardEnabled} checked={paymentMethod === "card"} onChange={() => setPaymentMethod("card")} />
+          Card {cardEnabled ? <span className="chip-mini">Kashier test mode</span> : <span className="muted small">(not configured on this server)</span>}
+        </label>
         {error && <p className="error">{error}</p>}
-        <button className="btn-primary" disabled={placing}>{placing ? "Placing order..." : "Place order"}</button>
+        <button className="btn-primary" disabled={placing}>{placing ? "Placing order..." : paymentMethod === "card" ? "Pay by card (Kashier test)" : "Place order"}</button>
       </form>
       <aside className="form-card">
         <h2>Order summary</h2>
