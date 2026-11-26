@@ -118,3 +118,9 @@ cd server && npm test
   static preview works without a backend; it only activates when the API is
   unreachable and is clearly labeled in the UI.
 - Prices are demo values; product photos are Unsplash placeholders.
+
+## Phase 4: card payments (Kashier test mode)
+
+Checkout supports cash on delivery or card. Card payments go through Kashier's hosted payment page in TEST mode: the server creates a payment session from the order total stored in the database, the customer pays on Kashier's page, and the order is marked paid only after a server-to-server verification with Kashier. Card data never touches this server. Requires test credentials in `server/.env` (see `server/.env.example`); without them the card option is disabled and the payments API returns 503.
+
+Note: the Kashier test flow is code-complete and covered by unit tests with a mocked/unconfigured gateway, but has not yet been verified end-to-end against a live Kashier sandbox account.
