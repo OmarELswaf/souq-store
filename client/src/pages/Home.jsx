@@ -1,7 +1,26 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api.js";
 import { useStore } from "../store.jsx";
+
+// Lazy: three.js and friends stay out of the main bundle. The 3D layer is
+// skipped entirely on small screens, reduced motion, or missing WebGL.
+const Hero3D = lazy(() => import("../components/Hero3D.jsx"));
+
+function useShow3DHero() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const fine = window.matchMedia("(min-width: 900px)").matches;
+    const calm = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let webgl = false;
+    try {
+      const c = document.createElement("canvas");
+      webgl = Boolean(c.getContext("webgl2") || c.getContext("webgl"));
+    } catch { webgl = false; }
+    if (fine && calm && webgl) setShow(true);
+  }, []);
+  return show;
+}
 
 const Icon = ({ d, size = 14 }) => (
   <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "-2px" }}>{d}</svg>
@@ -114,8 +133,24 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [quickView, setQuickView] = useState(null);
+  const show3D = useShow3DHero();
   const { addToCart } = useStore();
   const shopRef = useRef(null);
+  const gridRef = useRef(null);
+
+  // Scroll-reveal: stagger product cards in as the grid enters the viewport.
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid || loading) return;
+    const cards = grid.querySelectorAll(".card");
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add("revealed"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    cards.forEach((c, i) => { c.style.setProperty("--reveal-delay", `${Math.min(i, 12) * 40}ms`); io.observe(c); });
+    return () => io.disconnect();
+  }, [data, loading]);
 
   useEffect(() => { api("/products/categories").then((d) => setCategories(d.categories)); }, []);
   useEffect(() => { setPage(1); }, [q, category, sort]);
@@ -128,6 +163,11 @@ export default function Home() {
   return (
     <>
       <section className="hero">
+        {show3D && (
+          <Suspense fallback={null}>
+            <Hero3D />
+          </Suspense>
+        )}
         <div className="hero-inner">
           <span className="hero-pill">{CATEGORY_ICONS.Flame} Week of deals · up to 40% off selected picks</span>
           <h1>Make space for<br /><em>something better.</em></h1>
@@ -169,7 +209,7 @@ export default function Home() {
       </div>
 
       {loading ? <SkeletonGrid /> : (
-        <div className="grid">
+        <div className="grid" ref={gridRef}>
           {data.items.map((p) => <ProductCard p={p} key={p._id} onQuickView={setQuickView} />)}
           {data.items.length === 0 && <p className="muted">No products match your search.</p>}
         </div>

@@ -587,3 +587,28 @@ p.small, .muted.small { font-size: 13px; margin: 4px 0; }
 .radio-row { display: flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 600; color: var(--ink); padding: 10px 0; }
 .radio-row input { width: 16px; height: 16px; accent-color: var(--accent); }
 .card-element { border: 1.5px solid var(--line); border-radius: 10px; padding: 13px 14px; background: var(--paper); margin: 12px 0; }
+
+/* 3D hero layer (lazy-loaded; sits behind the hero copy, never interactive) */
+.hero-canvas {
+  position: absolute !important;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.9;
+}
+.hero > .hero-inner,
+.hero > .hero-media { position: relative; z-index: 1; }
+
+/* Scroll-reveal for product cards */
+.grid .card {
+  opacity: 0;
+  transform: translateY(18px) scale(0.985);
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.22, 0.9, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.grid .card.revealed { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grid .card { opacity: 1; transform: none; transition: none; }
+  html { scroll-behavior: auto; }
+}
