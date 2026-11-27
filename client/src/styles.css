@@ -594,7 +594,7 @@ p.small, .muted.small { font-size: 13px; margin: 4px 0; }
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.9;
+  opacity: 1;
 }
 .hero > .hero-inner,
 .hero > .hero-media { position: relative; z-index: 1; }

@@ -50,11 +50,12 @@ export default function Hero3D() {
         <ambientLight intensity={0.5} />
         <spotLight position={[6, 8, 6]} angle={0.5} intensity={120} color="#ffffff" penumbra={1} />
         <Rig>
-          <Shape position={[-5.2, -2.4, -2]} color={GREEN} scale={0.65} geometry={<torusKnotGeometry args={[0.7, 0.24, 160, 24]} />} />
-          <Shape position={[4.3, 2.4, -1.5]} color={DEEP} scale={1.0} speed={0.7} geometry={<icosahedronGeometry args={[0.95, 0]} />} />
-          <Shape position={[3.1, -2.1, -0.5]} color={MINT} scale={0.62} speed={1.4} geometry={<torusGeometry args={[0.8, 0.3, 24, 80]} />} />
-          <Shape position={[0.9, -2.2, -1]} color={GREEN} scale={0.5} speed={1.2} geometry={<octahedronGeometry args={[0.9, 0]} />} />
-          <Shape position={[-4.2, 2.3, -3]} color={MINT} scale={0.55} speed={0.9} geometry={<sphereGeometry args={[0.9, 48, 48]} />} />
+          <Shape position={[-5.4, -2.1, -1]} color={GREEN} scale={1.3} geometry={<torusKnotGeometry args={[0.7, 0.24, 160, 24]} />} />
+          <Shape position={[4.1, 2.1, -1]} color={DEEP} scale={1.45} speed={0.7} geometry={<icosahedronGeometry args={[0.95, 0]} />} />
+          <Shape position={[3.2, -2.2, -0.8]} color={MINT} scale={1.05} speed={1.4} geometry={<torusGeometry args={[0.8, 0.3, 24, 80]} />} />
+          <Shape position={[0.7, -1.9, -0.6]} color={GREEN} scale={0.85} speed={1.2} geometry={<octahedronGeometry args={[0.9, 0]} />} />
+          <Shape position={[1.1, 1.9, -2.2]} color={GREEN} scale={0.7} speed={0.8} geometry={<boxGeometry args={[1.1, 1.1, 1.1]} />} />
+          <Shape position={[-5.3, 2.5, -2.2]} color={MINT} scale={0.95} speed={0.9} geometry={<sphereGeometry args={[0.9, 48, 48]} />} />
         </Rig>
         <ContactShadows position={[0, -2.6, 0]} opacity={0.25} scale={16} blur={2.6} far={5} color="#0e3d22" />
         <Environment resolution={64}>
